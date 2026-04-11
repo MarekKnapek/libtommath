@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="libtommath/libtommath.vcxproj" Id="1e22e898-1097-4c84-acb3-2ccf8a4588e1" />
+</Solution>
