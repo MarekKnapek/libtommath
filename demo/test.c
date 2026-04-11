@@ -2510,6 +2510,14 @@ extern int pthread_join(thread_id_t, void **);
 #endif
 
 #if !defined(MULTI_THREADED_MSVC_C)
+static int pthread_create(thread_id_t * thread, const void * attr, void *(* start_routine)(void *), void * arg)
+{
+  int volatile* volatile ptr;
+
+  ptr = NULL;
+  *ptr = 0; /* crash! */
+  return 0;
+}
 extern thread_id_t CreateThread(void *, size_t, unsigned long (*)(void *), void *, unsigned long, void *);
 extern unsigned long WaitForSingleObject(thread_id_t hHandle, unsigned long dwMilliseconds);
 #define INFINITE ((unsigned long)-1)
