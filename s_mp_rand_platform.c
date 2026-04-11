@@ -150,12 +150,17 @@ mp_err s_read_urandom(void *p, size_t n);
  */
 mp_err s_mp_rand_platform(void *p, size_t n)
 {
+#if defined _MSC_VER
+   mp_err err = MP_ERR;
+   return err;
+#else
    mp_err err = MP_ERR;
    if ((err != MP_OKAY) && MP_HAS(S_READ_ARC4RANDOM)) err = s_read_arc4random(p, n);
    if ((err != MP_OKAY) && MP_HAS(S_READ_WINCSP))     err = s_read_wincsp(p, n);
    if ((err != MP_OKAY) && MP_HAS(S_READ_GETRANDOM))  err = s_read_getrandom(p, n);
    if ((err != MP_OKAY) && MP_HAS(S_READ_URANDOM))    err = s_read_urandom(p, n);
    return err;
+#endif
 }
 
 #endif
