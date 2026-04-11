@@ -51,12 +51,26 @@ static int64_t rand_int64(void)
 
 static uint32_t uabs32(int32_t x)
 {
+   #if defined _MSC_VER
+   #pragma warning(push)
+   #pragma warning(disable:4146) /* C4146: unary minus operator applied to unsigned type, result still unsigned */
+   #endif
    return (x > 0) ? (uint32_t)x : -(uint32_t)x;
+   #if defined _MSC_VER
+   #pragma warning(pop)
+   #endif
 }
 
 static uint64_t uabs64(int64_t x)
 {
+   #if defined _MSC_VER
+   #pragma warning(push)
+   #pragma warning(disable:4146) /* C4146: unary minus operator applied to unsigned type, result still unsigned */
+  #endif
    return (x > 0) ? (uint64_t)x : -(uint64_t)x;
+   #if defined _MSC_VER
+   #pragma warning(pop)
+   #endif
 }
 
 /* This function prototype is needed
