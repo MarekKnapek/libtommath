@@ -4,4 +4,7 @@
     <Platform Name="x86" />
   </Configurations>
   <Project Path="libtommath/libtommath.vcxproj" Id="1e22e898-1097-4c84-acb3-2ccf8a4588e1" />
+  <Project Path="test/test.vcxproj" Id="5e9357cd-190d-43f0-8572-2c361584295b" DefaultStartup="true">
+    <BuildDependency Project="libtommath/libtommath.vcxproj" />
+  </Project>
 </Solution>
