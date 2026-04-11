@@ -2526,8 +2526,13 @@ static int pthread_join(thread_id_t thread, void ** retval)
   *ptr = 0; /* crash! */
   return 0;
 }
-extern thread_id_t CreateThread(void *, size_t, unsigned long (*)(void *), void *, unsigned long, void *);
-extern unsigned long WaitForSingleObject(thread_id_t hHandle, unsigned long dwMilliseconds);
+#if defined __cplusplus
+#define LTM_EXTERN extern "C"
+#else
+#define LTM_EXTERN extern
+#endif
+LTM_EXTERN __declspec(dllimport) thread_id_t __stdcall CreateThread(void *, size_t, unsigned long (*)(void *), void *, unsigned long, void *);
+LTM_EXTERN __declspec(dllimport) unsigned long __stdcall WaitForSingleObject(thread_id_t hHandle, unsigned long dwMilliseconds);
 #define INFINITE ((unsigned long)-1)
 #endif
 
