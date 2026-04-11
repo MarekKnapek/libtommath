@@ -80,7 +80,17 @@ static uint64_t uabs64(int64_t x)
  * If the feature detection does not
  * work as desired we will get a linker error.
  */
+#if defined _MSC_VER
+static void does_not_exist(void)
+{
+  int volatile* volatile ptr;
+
+  ptr = NULL;
+  *ptr = 0; /* crash! */
+}
+#else
 void does_not_exist(void);
+#endif
 
 static int test_feature_detection(void)
 {
