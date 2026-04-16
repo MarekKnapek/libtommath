@@ -8,16 +8,18 @@
  * - Windows
  */
 #if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
-#define S_READ_ARC4RANDOM_C
+#define S_READ_ARC4RANDOM_C 1
 static mp_err s_read_arc4random(void *p, size_t n)
 {
    arc4random_buf(p, n);
    return MP_OKAY;
 }
+#else
+#define S_READ_ARC4RANDOM_C 0
 #endif
 
 #if defined(_WIN32)
-#define S_READ_WINCSP_C
+#define S_READ_WINCSP_C 1
 
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0501
@@ -39,6 +41,8 @@ static mp_err s_read_wincsp(void *p, size_t n)
                                          BCRYPT_USE_SYSTEM_PREFERRED_RNG)) ? MP_OKAY : MP_ERR;
 }
 #else
+#define S_READ_WINCSP_C 1
+
 #include <wincrypt.h>
 
 static mp_err s_read_wincsp(void *p, size_t n)
@@ -57,11 +61,13 @@ static mp_err s_read_wincsp(void *p, size_t n)
    return CryptGenRandom(hProv, (DWORD)n, (BYTE *)p) == TRUE ? MP_OKAY : MP_ERR;
 }
 #endif
+#else
+#define S_READ_WINCSP_C 0
 #endif /* WIN32 */
 
-#if !defined(S_READ_WINCSP_C) && defined(__linux__) && defined(__GLIBC_PREREQ)
+#if !S_READ_WINCSP_C && defined(__linux__) && defined(__GLIBC_PREREQ)
 #if __GLIBC_PREREQ(2, 25)
-#define S_READ_GETRANDOM_C
+#define S_READ_GETRANDOM_C 1
 #include <sys/random.h>
 #include <errno.h>
 
@@ -81,14 +87,18 @@ static mp_err s_read_getrandom(void *p, size_t n)
    }
    return MP_OKAY;
 }
+#else
+#define S_READ_GETRANDOM_C 0
 #endif
+#else
+#define S_READ_GETRANDOM_C 0
 #endif
 
 /* We assume all platforms besides windows provide "/dev/urandom".
  * In case yours doesn't, define MP_NO_DEV_URANDOM at compile-time.
  */
-#if !defined(S_READ_WINCSP_C) && !defined(MP_NO_DEV_URANDOM)
-#define S_READ_URANDOM_C
+#if !S_READ_WINCSP_C && !defined(MP_NO_DEV_URANDOM)
+#define S_READ_URANDOM_C 1
 #ifndef MP_DEV_URANDOM
 #define MP_DEV_URANDOM "/dev/urandom"
 #endif
@@ -122,39 +132,25 @@ static mp_err s_read_urandom(void *p, size_t n)
    close(fd);
    return MP_OKAY;
 }
+#else
+#define S_READ_URANDOM_C 0
 #endif
 
-mp_err s_read_arc4random(void *p, size_t n);
-mp_err s_read_wincsp(void *p, size_t n);
-mp_err s_read_getrandom(void *p, size_t n);
-mp_err s_read_urandom(void *p, size_t n);
-
-/*
- * Note: libtommath relies on dead code elimination
- * for the configuration system, i.e., the MP_HAS macro.
- *
- * If you observe linking errors in this functions,
- * your compiler does not perform the dead code compilation
- * such that the unused functions are still referenced.
- *
- * This happens for example for MSVC if the /Od compilation
- * option is given. The option /Od instructs MSVC to
- * not perform any "optimizations", not even removal of
- * dead code wrapped in `if (0)` blocks.
- *
- * If you still insist on compiling with /Od, simply
- * comment out the lines which result in linking errors.
- *
- * We intentionally don't fix this issue in order
- * to have a single point of failure for misconfigured compilers.
- */
 mp_err s_mp_rand_platform(void *p, size_t n)
 {
    mp_err err = MP_ERR;
-   if ((err != MP_OKAY) && MP_HAS(S_READ_ARC4RANDOM)) err = s_read_arc4random(p, n);
-   if ((err != MP_OKAY) && MP_HAS(S_READ_WINCSP))     err = s_read_wincsp(p, n);
-   if ((err != MP_OKAY) && MP_HAS(S_READ_GETRANDOM))  err = s_read_getrandom(p, n);
-   if ((err != MP_OKAY) && MP_HAS(S_READ_URANDOM))    err = s_read_urandom(p, n);
+   #if S_READ_ARC4RANDOM_C
+   if (err != MP_OKAY) err = s_read_arc4random(p, n);
+   #endif
+   #if S_READ_WINCSP_C
+   if (err != MP_OKAY) err = s_read_wincsp(p, n);
+   #endif
+   #if S_READ_GETRANDOM_C
+   if (err != MP_OKAY) err = s_read_getrandom(p, n);
+   #endif
+   #if S_READ_URANDOM_C
+   if (err != MP_OKAY) err = s_read_urandom(p, n);
+   #endif
    return err;
 }
 
